@@ -1,0 +1,45 @@
+{
+  "dashboard": {
+    "path": "/",
+    "file": "dashboard.html",
+    "tiles": ["active", "quotesOpen", "acceptedNotStarted", "invoicesOpen", "ended"],
+    "lists": [
+      { "key": "acceptedNotStarted", "detail": "quoteAccepted" },
+      { "key": "quotesOpen", "detail": "quoteSent" },
+      { "key": "invoicesOpen", "detail": "invoiceSent" }
+    ]
+  },
+  "customers": {
+    "path": "/customers",
+    "file": "customers.html",
+    "card": {
+      "title": "name",
+      "fields": ["email", "phone"],
+      "count": "projectCount"
+    }
+  },
+  "projects": {
+    "path": "/projects",
+    "file": "projects.html",
+    "row": {
+      "title": "customerName",
+      "fields": ["status", "prospectDate", "startDate", "endDate", "quoteSent", "quoteAccepted", "invoiceSent", "invoicePaid", "invoiceNumber"],
+      "link": "folderUrl",
+      "subtitle": "projectId",
+      "filters": ["current", "all", "prospect", "start", "ongoing", "end"],
+      "defaultFilter": "current",
+      "editable": [
+        { "field": "status", "type": "select" },
+        { "field": "prospectDate", "type": "date" },
+        { "field": "startDate", "type": "date" },
+        { "field": "endDate", "type": "date" },
+        { "field": "quoteSent", "type": "date" },
+        { "field": "quoteAccepted", "type": "date" },
+        { "field": "invoiceSent", "type": "date" },
+        { "field": "invoicePaid", "type": "date" },
+        { "field": "invoiceNumber", "type": "text" },
+        { "field": "folderUrl", "type": "url" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "appName": "CRM",
+  "nav": {
+    "dashboard": "Etusivu",
+    "customers": "Asiakkaat",
+    "projects": "Projektit"
+  },
+  "dashboard": {
+    "title": "Etusivu",
+    "pipeline": "Projektit vaiheittain",
+    "empty": "Ei tehtäviä.",
+    "tiles": {
+      "active": "Aktiivisia projekteja",
+      "quotesOpen": "Avoimia tarjouksia",
+      "acceptedNotStarted": "Hyväksytty, ei aloitettu",
+      "invoicesOpen": "Laskuja maksamatta",
+      "ended": "Päättyneitä"
+    },
+    "lists": {
+      "acceptedNotStarted": "Hyväksytty, ei aloitettu",
+      "quotesOpen": "Tarjous odottaa hyväksyntää",
+      "invoicesOpen": "Lasku odottaa maksua"
+    }
+  },
+  "customers": {
+    "title": "Asiakkaat",
+    "projectCount": "Projekteja",
+    "empty": "Ei asiakkaita."
+  },
+  "projects": {
+    "title": "Projektit",
+    "empty": "Ei projekteja.",
+    "folderLink": "Aineistokansio"
+  },
+  "status": {
+    "prospect": "Tarjous",
+    "start": "Aloitettu",
+    "ongoing": "Käynnissä",
+    "end": "Päättynyt"
+  },
+  "fields": {
+    "email": "Sähköposti",
+    "phone": "Puhelin",
+    "customer": "Asiakas",
+    "status": "Tila",
+    "prospectDate": "Tarjous pvm",
+    "startDate": "Alkaa",
+    "endDate": "Päättyy",
+    "quoteSent": "Tarjous lähetetty",
+    "quoteAccepted": "Tarjous hyväksytty",
+    "invoiceSent": "Lasku lähetetty",
+    "invoicePaid": "Lasku maksettu",
+    "invoiceNumber": "Laskun numero",
+    "folderUrl": "Aineistokansion linkki",
+    "projectId": "Projekti"
+  },
+  "filters": {
+    "show": "Näytä",
+    "allCustomers": "Kaikki asiakkaat",
+    "current": "Aktiiviset",
+    "all": "Kaikki",
+    "prospect": "Tarjoukset",
+    "start": "Aloitetut",
+    "ongoing": "Käynnissä",
+    "end": "Päättyneet"
+  },
+  "buttons": {
+    "edit": "Muokkaa",
+    "save": "Tallenna",
+    "cancel": "Peruuta"
+  },
+  "messages": {
+    "error": "Tallennus epäonnistui."
+  }
+}
