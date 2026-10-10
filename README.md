@@ -45,3 +45,4 @@ The `.env.local` file is auto-generated when you run `neon link`. It contains:
 
 **Never commit `.env.local` to git** (it's in `.gitignore`).
 
+Get started with Neon. Using Neon org org-odd-art-22763557 and project divine-meadow-36360048.
