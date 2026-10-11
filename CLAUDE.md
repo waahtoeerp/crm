@@ -11,9 +11,11 @@ The project must stay runnable and understandable without AI.
 
 ### Tables
 - `customers`: customer_id, name, email, phone
-- `projects`: project_id, customer_id (FK to customers), material_id, status (prospect | start | ongoing | end), prospect_date, start_date, end_date
+- `projects`: project_id, customer_id (FK to customers), folder_url (link to the project's materials folder, e.g. OneDrive), status (prospect | start | ongoing | end), prospect_date, start_date, end_date, quote_sent_date, quote_accepted_date, invoice_sent_date, invoice_paid_date, invoice_number
 
 One customer has many projects.
+
+Design files are not stored in this database. `folder_url` only links to them in the company's file storage (OneDrive or SharePoint).
 
 ## Rules for Claude
 

@@ -2,7 +2,13 @@
   "dashboard": {
     "path": "/",
     "file": "dashboard.html",
-    "tiles": ["active", "quotesOpen", "acceptedNotStarted", "invoicesOpen", "ended"],
+    "tiles": [
+      { "key": "active", "filter": "current" },
+      { "key": "quotesOpen", "filter": "quotesOpen" },
+      { "key": "acceptedNotStarted", "filter": "acceptedNotStarted" },
+      { "key": "invoicesOpen", "filter": "invoicesOpen" },
+      { "key": "ended", "filter": "end" }
+    ],
     "lists": [
       { "key": "acceptedNotStarted", "detail": "quoteAccepted" },
       { "key": "quotesOpen", "detail": "quoteSent" },
@@ -26,7 +32,7 @@
       "fields": ["status", "prospectDate", "startDate", "endDate", "quoteSent", "quoteAccepted", "invoiceSent", "invoicePaid", "invoiceNumber"],
       "link": "folderUrl",
       "subtitle": "projectId",
-      "filters": ["current", "all", "prospect", "start", "ongoing", "end"],
+      "filters": ["current", "all", "quotesOpen", "acceptedNotStarted", "invoicesOpen", "prospect", "start", "ongoing", "end"],
       "defaultFilter": "current",
       "editable": [
         { "field": "status", "type": "select" },

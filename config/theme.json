@@ -1,14 +1,17 @@
 {
   "colors": {
-    "background": "#f1f5f9",
+    "background": "#fff9ed",
     "surface": "#ffffff",
-    "text": "#0f172a",
-    "muted": "#64748b",
-    "primary": "#4f46e5",
-    "border": "#e2e8f0"
+    "text": "#393939",
+    "muted": "#53565a",
+    "primary": "#000000",
+    "border": "#dee2e6",
+    "headerBg": "#ffb201",
+    "headerText": "#000000",
+    "accent": "#ffb201"
   },
   "font": {
-    "family": "Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+    "family": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "size": "15px"
   },
   "layout": {

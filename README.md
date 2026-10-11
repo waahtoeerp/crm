@@ -2,6 +2,14 @@
 
 Testing PostgreSQL with Neon and testing new workflow with MCP.
 
+# backlog
+
+1. use uv? how to run it manually
+2. make a marmade graph of the AI setup,
+how similar MCP is deployed to another project
+
+
+
 ## Setup
 
 ### Prerequisites
@@ -46,3 +54,20 @@ The `.env.local` file is auto-generated when you run `neon link`. It contains:
 **Never commit `.env.local` to git** (it's in `.gitignore`).
 
 Get started with Neon. Using Neon org org-odd-art-22763557 and project divine-meadow-36360048.
+
+# How to start and share CRM
+
+Here's how to share it through a temporary public link:
+
+## In the project folder, start the CRM:
+
+```bash
+npm start
+In a second terminal window, start the tunnel:
+
+cloudflared tunnel --url http://localhost:3000
+
+# Copy the https://....trycloudflare.com address it prints and send it to the customer.
+
+````
+
