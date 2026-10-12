@@ -15,6 +15,13 @@
       { "key": "invoicesOpen", "detail": "invoiceSent" }
     ]
   },
+  "insights": {
+    "path": "/insights",
+    "file": "insights.html",
+    "table": {
+      "columns": ["material", "method", "runs", "avgMinutes", "lastRun"]
+    }
+  },
   "customers": {
     "path": "/customers",
     "file": "customers.html",

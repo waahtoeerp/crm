@@ -2,6 +2,7 @@
   "appName": "CRM",
   "nav": {
     "dashboard": "Etusivu",
+    "insights": "Ennusteet",
     "customers": "Asiakkaat",
     "projects": "Projektit"
   },
@@ -22,6 +23,34 @@
       "invoicesOpen": "Lasku odottaa maksua"
     }
   },
+  "insights": {
+    "title": "Ennusteet",
+    "note": "Ennusteet tulevat, kun kustannusmalli on valmis. Tässä näkyvät toteutuneet ajat.",
+    "empty": "Ei valmiita ajoja.",
+    "form": {
+      "title": "Hinta-arvio",
+      "method": "Menetelmä",
+      "material": "Materiaali",
+      "width": "Leveys (mm)",
+      "height": "Korkeus (mm)",
+      "addPiece": "Lisää kappale",
+      "removePiece": "Poista",
+      "calculate": "Laske",
+      "totalArea": "Pinta-ala",
+      "estimate": "Arvioitu aika",
+      "range": "Vaihteluväli",
+      "basedOn": "Perustuu ajoihin",
+      "noRuns": "Tälle yhdistelmälle ei ole ajoja, joissa on mitat.",
+      "invalid": "Tarkista mitat ja valinnat."
+    },
+    "columns": {
+      "material": "Materiaali",
+      "method": "Menetelmä",
+      "runs": "Ajoja",
+      "avgMinutes": "Keskiaika (min)",
+      "lastRun": "Viimeisin"
+    }
+  },
   "customers": {
     "title": "Asiakkaat",
     "projectCount": "Projekteja",
@@ -30,7 +59,8 @@
   "projects": {
     "title": "Projektit",
     "empty": "Ei projekteja.",
-    "folderLink": "Aineistokansio"
+    "folderLink": "Aineistokansio",
+    "open": "Avaa projekti"
   },
   "status": {
     "prospect": "Tarjous",
@@ -73,7 +103,6 @@
     "machines": "Koneet",
     "materials": "Materiaalit",
     "notFound": "Projektia ei löytynyt.",
-    "unit": "Yksikkö",
     "customer": "Asiakas",
     "status": "Tila"
   },

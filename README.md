@@ -7,6 +7,8 @@ Testing PostgreSQL with Neon and testing new workflow with MCP.
 1. use uv? how to run it manually
 2. make a marmade graph of the AI setup,
 how similar MCP is deployed to another project
+3. A project can have many design files, so many materials. Not urgent: check the project page and the selection model when this comes up.
+4. Show how the cost model improves over time: estimate versus actual per week or month, so we can see whether the model is getting better.
 
 
 

@@ -159,9 +159,11 @@ function renderProjects(rows) {
       link.rel = "noopener";
       card.append(link);
     }
+    const open = element("a", "button-link", text("projects.open"));
+    open.href = `/project/${row.projectId}`;
     const edit = element("button", "secondary", text("buttons.edit"));
     edit.addEventListener("click", () => card.replaceWith(editorFor(row)));
-    card.append(edit);
+    card.append(open, edit);
     list.append(card);
   }
 }
@@ -281,8 +283,34 @@ function renderDashboard(data) {
   }
 }
 
-function codeCard(title, code, qrPath, details = []) {
-  const card = element("article", "card code-card");
+let projectId;
+
+function setChoice(card, selected) {
+  card.classList.toggle("selected", selected);
+  card.setAttribute("aria-pressed", String(selected));
+}
+
+async function chooseItem(card, choice) {
+  if (card.classList.contains("selected")) return;
+  document
+    .querySelectorAll(`.code-card[data-kind="${choice.kind}"]`)
+    .forEach((other) => setChoice(other, other === card));
+  const response = await fetch(`/api/project-sheet/${projectId}/selections`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kind: choice.kind, itemId: choice.itemId }),
+  });
+  if (!response.ok) location.reload();
+}
+
+function codeCard(title, code, qrPath, details = [], choice = null) {
+  const card = choice ? element("button", "card code-card") : element("article", "card code-card");
+  if (choice) {
+    card.type = "button";
+    card.dataset.kind = choice.kind;
+    setChoice(card, choice.selected);
+    card.addEventListener("click", () => chooseItem(card, choice));
+  }
   const image = element("img");
   image.src = qrPath;
   image.alt = code;
@@ -305,6 +333,7 @@ function codeSection(title, cards) {
 async function renderProjectSheet() {
   const root = document.getElementById("sheet");
   const id = location.pathname.split("/").pop();
+  projectId = id;
   const response = await fetch(`/api/project-sheet/${encodeURIComponent(id)}`);
   if (!response.ok) {
     root.append(element("p", "empty", text("sheet.notFound")));
@@ -323,16 +352,149 @@ async function renderProjectSheet() {
     codeSection(
       text("sheet.machines"),
       sheet.machines.map((machine) =>
-        codeCard(machine.name, machine.code, machine.qrPath, [config.methods[machine.type] ?? machine.type]),
+        codeCard(machine.name, machine.code, machine.qrPath, [config.methods[machine.type] ?? machine.type], {
+          kind: "machine",
+          itemId: machine.machineId,
+          selected: machine.selected,
+        }),
       ),
     ),
     codeSection(
       text("sheet.materials"),
       sheet.materials.map((material) =>
-        codeCard(material.name, material.code, material.qrPath, [`${text("sheet.unit")}: ${material.unit}`]),
+        codeCard(material.name, material.code, material.qrPath, [], {
+          kind: "material",
+          itemId: material.materialId,
+          selected: material.selected,
+        }),
       ),
     ),
   );
+}
+
+function pieceRow() {
+  const row = element("div", "piece-row");
+  const width = element("input");
+  const height = element("input");
+  for (const [input, name] of [[width, "piece-width"], [height, "piece-height"]]) {
+    input.type = "number";
+    input.min = "1";
+    input.max = "5000";
+    input.step = "any";
+    input.required = true;
+    input.className = name;
+  }
+  const remove = element("button", "secondary", text("insights.form.removePiece"));
+  remove.type = "button";
+  remove.addEventListener("click", () => {
+    if (row.parentElement.children.length > 1) row.remove();
+  });
+  row.append(
+    fieldWrap(text("insights.form.width"), width),
+    fieldWrap(text("insights.form.height"), height),
+    remove,
+  );
+  return row;
+}
+
+function resultLine(labelText, value) {
+  const line = element("p");
+  line.append(element("span", "label", `${labelText}: `), value);
+  return line;
+}
+
+async function renderForecast() {
+  const root = document.getElementById("forecast");
+  const materials = await (await fetch("/api/materials")).json();
+
+  root.append(element("h3", null, text("insights.form.title")));
+  const form = element("form");
+
+  const method = element("select");
+  for (const [key, label] of Object.entries(config.methods)) {
+    const option = element("option", null, label);
+    option.value = key;
+    method.append(option);
+  }
+  const material = element("select");
+  for (const item of materials) {
+    const option = element("option", null, item.name);
+    option.value = item.materialId;
+    material.append(option);
+  }
+
+  const pieces = element("div", "pieces");
+  pieces.append(pieceRow());
+  const addPiece = element("button", "secondary", text("insights.form.addPiece"));
+  addPiece.type = "button";
+  addPiece.addEventListener("click", () => pieces.append(pieceRow()));
+  const submit = element("button", null, text("insights.form.calculate"));
+  submit.type = "submit";
+
+  const result = element("div", "result");
+  form.append(
+    fieldWrap(text("insights.form.method"), method),
+    fieldWrap(text("insights.form.material"), material),
+    pieces,
+    addPiece,
+    submit,
+  );
+  root.append(form, result);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const body = {
+      method: method.value,
+      materialId: Number(material.value),
+      pieces: [...pieces.querySelectorAll(".piece-row")].map((row) => ({
+        width: Number(row.querySelector(".piece-width").value),
+        height: Number(row.querySelector(".piece-height").value),
+      })),
+    };
+    const response = await fetch("/api/forecast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    result.replaceChildren();
+    if (!response.ok) {
+      result.append(element("p", "message", text("insights.form.invalid")));
+      return;
+    }
+    const data = await response.json();
+    result.append(resultLine(text("insights.form.totalArea"), `${data.totalAreaM2} m²`));
+    if (data.runs === 0) {
+      result.append(element("p", "empty", text("insights.form.noRuns")));
+      return;
+    }
+    result.append(
+      resultLine(text("insights.form.estimate"), `${Math.round(data.estimateMinutes)} min`),
+      resultLine(text("insights.form.range"), `${Math.round(data.lowMinutes)}–${Math.round(data.highMinutes)} min`),
+      resultLine(text("insights.form.basedOn"), String(data.runs)),
+    );
+  });
+}
+
+function renderInsights(rows) {
+  const root = document.getElementById("table");
+  if (rows.length === 0) {
+    root.append(element("p", "empty", text("insights.empty")));
+    return;
+  }
+  const columns = config.pages.insights.table.columns;
+  const table = element("table", "data-table");
+  const head = element("tr");
+  for (const column of columns) head.append(element("th", null, text(`insights.columns.${column}`)));
+  table.append(head);
+  for (const row of rows) {
+    const tr = element("tr");
+    for (const column of columns) {
+      const value = column === "method" ? (config.methods[row.method] ?? row.method) : row[column];
+      tr.append(element("td", null, value === null || value === undefined ? "–" : String(value)));
+    }
+    table.append(tr);
+  }
+  root.append(table);
 }
 
 async function start() {
@@ -344,6 +506,9 @@ async function start() {
     await renderProjectSheet();
   } else if (page === "dashboard") {
     renderDashboard(await (await fetch("/api/dashboard")).json());
+  } else if (page === "insights") {
+    renderInsights(await (await fetch("/api/insights")).json());
+    await renderForecast();
   } else if (page === "customers") {
     const rows = await (await fetch("/api/customers")).json();
     renderCustomers(rows);

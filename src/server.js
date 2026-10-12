@@ -174,9 +174,81 @@ app.post("/api/materials", async (req, res) => {
   res.status(201).json(await materials.createMaterial(pool, input));
 });
 
+app.get("/api/insights", async (req, res) => {
+  const { rows } = await pool.query(`
+    SELECT m.name AS material, o.method,
+           COUNT(*)::int AS runs,
+           ROUND(AVG(EXTRACT(EPOCH FROM (o.ended_at - o.started_at)) / 60)::numeric, 1) AS "avgMinutes",
+           MAX(o.started_at)::date AS "lastRun"
+    FROM operations o
+    JOIN materials m ON m.material_id = o.material_id
+    WHERE o.ended_at IS NOT NULL
+    GROUP BY m.name, o.method
+    ORDER BY m.name, o.method
+  `);
+  res.json(rows);
+});
+
+const FORECAST_DRIVER = {
+  uvPrint: (w, h) => (w * h) / 1_000_000,
+  cut: (w, h) => (2 * (w + h)) / 1000,
+  route: (w, h) => (2 * (w + h)) / 1000,
+};
+
+const round1 = (value) => Math.round(value * 10) / 10;
+
+app.post("/api/forecast", async (req, res) => {
+  const { method, materialId, pieces } = req.body ?? {};
+  const validPieces =
+    Array.isArray(pieces) &&
+    pieces.length >= 1 &&
+    pieces.length <= 20 &&
+    pieces.every(
+      (p) =>
+        Number.isFinite(p?.width) && Number.isFinite(p?.height) &&
+        p.width > 0 && p.height > 0 && p.width <= 5000 && p.height <= 5000,
+    );
+  if (!Object.hasOwn(FORECAST_DRIVER, method) || !Number.isInteger(materialId) || !validPieces) {
+    return res.status(400).json({ error: "invalid forecast input" });
+  }
+
+  const driver = FORECAST_DRIVER[method];
+  const totalDriver = pieces.reduce((sum, p) => sum + driver(p.width, p.height), 0);
+  const totalAreaM2 = Math.round(pieces.reduce((sum, p) => sum + (p.width * p.height) / 1_000_000, 0) * 100) / 100;
+
+  const { rows } = await pool.query(
+    `SELECT o.started_at, o.ended_at, f.width_mm, f.height_mm
+     FROM operations o
+     JOIN files f ON f.file_id = o.file_id
+     WHERE o.method = $1 AND o.material_id = $2
+       AND o.ended_at IS NOT NULL AND f.width_mm IS NOT NULL AND f.height_mm IS NOT NULL`,
+    [method, materialId],
+  );
+
+  const estimates = rows
+    .map((row) => {
+      const minutes = (new Date(row.ended_at) - new Date(row.started_at)) / 60000;
+      const runDriver = driver(Number(row.width_mm), Number(row.height_mm));
+      return (minutes / runDriver) * totalDriver;
+    })
+    .filter(Number.isFinite);
+
+  if (estimates.length === 0) {
+    return res.json({ runs: 0, totalAreaM2, estimateMinutes: null, lowMinutes: null, highMinutes: null });
+  }
+  const mean = estimates.reduce((sum, value) => sum + value, 0) / estimates.length;
+  res.json({
+    runs: estimates.length,
+    totalAreaM2,
+    estimateMinutes: round1(mean),
+    lowMinutes: round1(Math.min(...estimates)),
+    highMinutes: round1(Math.max(...estimates)),
+  });
+});
+
 app.get("/qr/:kind/:id", async (req, res) => {
   const id = Number(req.params.id);
-  if (!qr.KINDS[req.params.kind] || !Number.isInteger(id)) return res.status(404).end();
+  if (!Object.hasOwn(qr.KINDS, req.params.kind) || !Number.isInteger(id)) return res.status(404).end();
   const png = await qr.qrPng(pool, req.params.kind, id);
   if (!png) return res.status(404).end();
   res.type("png").send(png);
@@ -203,6 +275,15 @@ app.get("/api/project-sheet/:id", async (req, res) => {
     `SELECT machine_id AS "machineId", name, type FROM machines ORDER BY machine_id`,
   );
 
+  const picked = await pool.query(
+    `SELECT DISTINCT ON (item_kind) item_kind, item_id
+     FROM selections
+     WHERE project_id = $1
+     ORDER BY item_kind, selected_at DESC, selection_id DESC`,
+    [id],
+  );
+  const chosen = new Set(picked.rows.map((row) => `${row.item_kind}:${row.item_id}`));
+
   const project = rows[0];
   res.json({
     project: {
@@ -215,9 +296,33 @@ app.get("/api/project-sheet/:id", async (req, res) => {
       ...m,
       code: `MCH-${String(m.machineId).padStart(4, "0")}`,
       qrPath: `/qr/machine/${m.machineId}`,
+      selected: chosen.has(`machine:${m.machineId}`),
     })),
-    materials: await materials.listMaterials(pool),
+    materials: (await materials.listMaterials(pool)).map((m) => ({
+      ...m,
+      selected: chosen.has(`material:${m.materialId}`),
+    })),
   });
+});
+
+app.post("/api/project-sheet/:id/selections", async (req, res) => {
+  const projectId = Number(req.params.id);
+  const { kind, itemId } = req.body ?? {};
+  const valid =
+    Number.isInteger(projectId) &&
+    (kind === "machine" || kind === "material") &&
+    Number.isInteger(itemId);
+  if (!valid) return res.status(400).json({ error: "invalid selection" });
+
+  const spec = qr.KINDS[kind];
+  const item = await pool.query(`SELECT 1 FROM ${spec.table} WHERE ${spec.idColumn} = $1`, [itemId]);
+  if (item.rowCount === 0) return res.status(404).json({ error: "item not found" });
+
+  await pool.query(
+    `INSERT INTO selections (project_id, item_kind, item_id) VALUES ($1, $2, $3)`,
+    [projectId, kind, itemId],
+  );
+  res.status(201).json({ ok: true });
 });
 
 const pages = readConfig("pages");

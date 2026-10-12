@@ -8,6 +8,7 @@
   --headerBg: #ffb201;
   --headerText: #000000;
   --accent: #ffb201;
+  --selected: #2e9e5b;
   --font: system-ui, sans-serif;
   --font-size: 16px;
   --radius: 8px;
@@ -138,6 +139,18 @@ button.secondary {
   margin-top: 12px;
 }
 
+a.button-link {
+  display: inline-block;
+  margin-top: 12px;
+  margin-right: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: #ffffff;
+  text-decoration: none;
+}
+
 .id {
   color: var(--muted);
   font-size: 0.8rem;
@@ -256,6 +269,63 @@ a.tile:hover {
 .code-card h3 {
   margin: 0;
   font-size: 1rem;
+}
+
+button.code-card {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  cursor: pointer;
+}
+
+.code-card.selected {
+  background: var(--selected);
+  border-color: var(--selected);
+  color: #ffffff;
+}
+
+.code-card.selected .id,
+.code-card.selected .label {
+  color: #ffffff;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.data-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.piece-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  align-items: flex-end;
+}
+
+.piece-row .field {
+  flex: 1;
+  min-width: 120px;
+}
+
+.piece-row button {
+  margin-bottom: 8px;
+}
+
+.result {
+  margin-top: var(--gap);
 }
 
 .message {

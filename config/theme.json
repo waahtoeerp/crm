@@ -8,7 +8,8 @@
     "border": "#dee2e6",
     "headerBg": "#ffb201",
     "headerText": "#000000",
-    "accent": "#ffb201"
+    "accent": "#ffb201",
+    "selected": "#2e9e5b"
   },
   "font": {
     "family": "\"Helvetica Neue\", Helvetica, Arial, sans-serif",

@@ -8,27 +8,17 @@ function materialCode(id) {
 
 function parseMaterial(body) {
   const name = String(body.name ?? "").trim();
-  const unit = String(body.unit ?? "").trim();
   if (name === "" || name.length > 200) throw new ValidationError("name: 1-200 characters required");
-  if (unit === "" || unit.length > 20) throw new ValidationError("unit: 1-20 characters required");
-
-  let unitCost = null;
-  if (body.unitCost !== null && body.unitCost !== undefined && String(body.unitCost).trim() !== "") {
-    unitCost = Number(body.unitCost);
-    if (!Number.isFinite(unitCost) || unitCost < 0 || unitCost > 99999999.99) {
-      throw new ValidationError("unitCost: a number from 0 to 99999999.99 required");
-    }
-  }
-  return { name, unit, unitCost };
+  return { name };
 }
 
 async function createMaterial(pool, input) {
   const token = crypto.randomBytes(16).toString("hex");
   const { rows } = await pool.query(
-    `INSERT INTO materials (name, unit, unit_cost, qr_token)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO materials (name, qr_token)
+     VALUES ($1, $2)
      RETURNING material_id`,
-    [input.name, input.unit, input.unitCost, token],
+    [input.name, token],
   );
   const id = rows[0].material_id;
   return { materialId: id, code: materialCode(id), qrPath: `/qr/material/${id}` };
@@ -36,7 +26,7 @@ async function createMaterial(pool, input) {
 
 async function listMaterials(pool) {
   const { rows } = await pool.query(
-    `SELECT material_id AS "materialId", name, unit, unit_cost AS "unitCost"
+    `SELECT material_id AS "materialId", name
      FROM materials
      ORDER BY material_id`,
   );
@@ -44,8 +34,6 @@ async function listMaterials(pool) {
     materialId: row.materialId,
     code: materialCode(row.materialId),
     name: row.name,
-    unit: row.unit,
-    unitCost: row.unitCost === null ? null : Number(row.unitCost),
     qrPath: `/qr/material/${row.materialId}`,
   }));
 }

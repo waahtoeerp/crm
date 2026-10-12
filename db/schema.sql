@@ -24,16 +24,15 @@ CREATE TABLE projects (
 CREATE TABLE materials (
     material_id  SERIAL PRIMARY KEY,
     name         TEXT NOT NULL,
-    unit         TEXT NOT NULL,
-    unit_cost    NUMERIC(10, 2),
-    qr_token     TEXT NOT NULL UNIQUE,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    qr_token     TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE files (
     file_id      TEXT PRIMARY KEY,
     project_id   INTEGER NOT NULL REFERENCES projects (project_id),
     description  TEXT,
+    width_mm     NUMERIC(10, 1),
+    height_mm    NUMERIC(10, 1),
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -44,13 +43,21 @@ CREATE TABLE machines (
     qr_token     TEXT UNIQUE
 );
 
+-- Append-only history. The current machine or material of a project is its latest row per item_kind.
+CREATE TABLE selections (
+    selection_id SERIAL PRIMARY KEY,
+    project_id   INTEGER NOT NULL REFERENCES projects (project_id),
+    item_kind    TEXT NOT NULL CHECK (item_kind IN ('machine', 'material')),
+    item_id      INTEGER NOT NULL,
+    selected_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE operations (
     operation_id SERIAL PRIMARY KEY,
     file_id      TEXT NOT NULL REFERENCES files (file_id),
     material_id  INTEGER NOT NULL REFERENCES materials (material_id),
     machine_id   INTEGER REFERENCES machines (machine_id),
     method       TEXT NOT NULL,
-    quantity     NUMERIC(10, 2) NOT NULL,
     started_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     ended_at     TIMESTAMPTZ
 );
