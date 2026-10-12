@@ -2,6 +2,8 @@ const path = require("node:path");
 const fs = require("node:fs");
 const express = require("express");
 const pg = require("pg");
+const materials = require("./materials");
+const qr = require("./qr");
 
 const ROOT = path.join(__dirname, "..");
 const DATE_OID = 1082;
@@ -59,6 +61,7 @@ app.get("/api/config", (req, res) => {
     theme: readConfig("theme"),
     texts: readConfig("texts"),
     pages: readConfig("pages"),
+    methods: readConfig("methods"),
   });
 });
 
@@ -153,6 +156,67 @@ app.get("/api/dashboard", async (req, res) => {
     counts: counts.rows[0],
     stages: Object.fromEntries(stages.rows.map((row) => [row.status, row.count])),
     lists,
+  });
+});
+
+app.get("/api/materials", async (req, res) => {
+  res.json(await materials.listMaterials(pool));
+});
+
+app.post("/api/materials", async (req, res) => {
+  let input;
+  try {
+    input = materials.parseMaterial(req.body ?? {});
+  } catch (err) {
+    if (err instanceof materials.ValidationError) return res.status(400).json({ error: err.message });
+    throw err;
+  }
+  res.status(201).json(await materials.createMaterial(pool, input));
+});
+
+app.get("/qr/:kind/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!qr.KINDS[req.params.kind] || !Number.isInteger(id)) return res.status(404).end();
+  const png = await qr.qrPng(pool, req.params.kind, id);
+  if (!png) return res.status(404).end();
+  res.type("png").send(png);
+});
+
+app.get("/api/project-sheet/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(404).json({ error: "project not found" });
+
+  const { rows } = await pool.query(
+    `SELECT p.project_id AS "projectId", c.name AS "customerName", p.status
+     FROM projects p
+     JOIN customers c ON c.customer_id = p.customer_id
+     WHERE p.project_id = $1`,
+    [id],
+  );
+  if (rows.length === 0) return res.status(404).json({ error: "project not found" });
+
+  const files = await pool.query(
+    `SELECT file_id AS "fileId", description FROM files WHERE project_id = $1 ORDER BY file_id`,
+    [id],
+  );
+  const machines = await pool.query(
+    `SELECT machine_id AS "machineId", name, type FROM machines ORDER BY machine_id`,
+  );
+
+  const project = rows[0];
+  res.json({
+    project: {
+      ...project,
+      code: `PRJ-${String(project.projectId).padStart(4, "0")}`,
+      qrPath: `/qr/project/${project.projectId}`,
+    },
+    files: files.rows,
+    machines: machines.rows.map((m) => ({
+      ...m,
+      code: `MCH-${String(m.machineId).padStart(4, "0")}`,
+      qrPath: `/qr/machine/${m.machineId}`,
+    })),
+    materials: await materials.listMaterials(pool),
   });
 });
 

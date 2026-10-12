@@ -237,6 +237,27 @@ a.tile:hover {
   margin: 6px 0;
 }
 
+.codes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: var(--gap);
+}
+
+.code-card {
+  text-align: center;
+}
+
+.code-card img {
+  display: block;
+  margin: 0 auto 8px;
+  max-width: 100%;
+}
+
+.code-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
 .message {
   color: var(--primary);
   min-height: 1em;

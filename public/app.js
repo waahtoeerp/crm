@@ -34,6 +34,7 @@ function applyTexts() {
 function buildNav() {
   const nav = document.querySelector("nav");
   for (const [name, spec] of Object.entries(config.pages)) {
+    if (spec.nav === false) continue;
     const link = document.createElement("a");
     link.href = spec.path;
     link.textContent = text(`nav.${name}`);
@@ -280,12 +281,68 @@ function renderDashboard(data) {
   }
 }
 
+function codeCard(title, code, qrPath, details = []) {
+  const card = element("article", "card code-card");
+  const image = element("img");
+  image.src = qrPath;
+  image.alt = code;
+  image.width = 140;
+  image.height = 140;
+  card.append(image, element("h3", null, title), element("p", "id", code));
+  for (const line of details) card.append(element("p", "label", line));
+  return card;
+}
+
+function codeSection(title, cards) {
+  const section = element("section", "panel");
+  section.append(element("h3", null, title));
+  const grid = element("div", "codes");
+  grid.append(...cards);
+  section.append(grid);
+  return section;
+}
+
+async function renderProjectSheet() {
+  const root = document.getElementById("sheet");
+  const id = location.pathname.split("/").pop();
+  const response = await fetch(`/api/project-sheet/${encodeURIComponent(id)}`);
+  if (!response.ok) {
+    root.append(element("p", "empty", text("sheet.notFound")));
+    return;
+  }
+  const sheet = await response.json();
+  const { project } = sheet;
+
+  root.append(
+    codeSection(text("sheet.project"), [
+      codeCard(project.customerName, project.code, project.qrPath, [
+        `${label("status")}: ${text(`status.${project.status}`)}`,
+        ...sheet.files.map((file) => `${text("sheet.files")}: ${file.fileId}${file.description ? ` (${file.description})` : ""}`),
+      ]),
+    ]),
+    codeSection(
+      text("sheet.machines"),
+      sheet.machines.map((machine) =>
+        codeCard(machine.name, machine.code, machine.qrPath, [config.methods[machine.type] ?? machine.type]),
+      ),
+    ),
+    codeSection(
+      text("sheet.materials"),
+      sheet.materials.map((material) =>
+        codeCard(material.name, material.code, material.qrPath, [`${text("sheet.unit")}: ${material.unit}`]),
+      ),
+    ),
+  );
+}
+
 async function start() {
   config = await (await fetch("/api/config")).json();
   applyTheme(config.theme);
   applyTexts();
   buildNav();
-  if (page === "dashboard") {
+  if (page === "project") {
+    await renderProjectSheet();
+  } else if (page === "dashboard") {
     renderDashboard(await (await fetch("/api/dashboard")).json());
   } else if (page === "customers") {
     const rows = await (await fetch("/api/customers")).json();

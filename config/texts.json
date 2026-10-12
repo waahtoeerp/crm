@@ -67,6 +67,16 @@
     "ongoing": "Käynnissä",
     "end": "Päättyneet"
   },
+  "sheet": {
+    "project": "Projekti",
+    "files": "Suunnitelmat",
+    "machines": "Koneet",
+    "materials": "Materiaalit",
+    "notFound": "Projektia ei löytynyt.",
+    "unit": "Yksikkö",
+    "customer": "Asiakas",
+    "status": "Tila"
+  },
   "buttons": {
     "edit": "Muokkaa",
     "save": "Tallenna",

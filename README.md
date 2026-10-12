@@ -10,7 +10,7 @@ how similar MCP is deployed to another project
 
 
 
-## Setup
+# Setup
 
 ### Prerequisites
 - Node.js v18+ and npm
@@ -69,5 +69,32 @@ cloudflared tunnel --url http://localhost:3000
 
 # Copy the https://....trycloudflare.com address it prints and send it to the customer.
 
-````
+```
 
+# How npm start works
+
+```bash
+ONCE:  npm install
+       package.json ........ list of libraries the project needs
+       package-lock.json ... exact versions (so everyone gets the same ones)
+       node_modules/ ....... the downloaded libraries (the result)
+
+EVERY TIME:  npm start
+       package.json "start" script runs:
+         node --env-file=.env.local src/server.js
+            1. loads .env.local  -> DATABASE_URL etc. into the environment
+            2. server.js uses express + pg from node_modules
+            3. connects to Neon with DATABASE_URL
+            4. reads config/*.json (theme, texts, pages)
+            5. listens on http://localhost:3000
+```
+```bash
+
+browser -> /projects         server sends projects.html (empty shell)
+browser -> /api/config       server sends theme + texts + pages from config/
+browser -> /api/projects     server queries Neon, sends rows as JSON
+app.js  -> builds the page from config + rows
+```
+- npm install only needs to run again when package.json changes or after a fresh clone.
+- node_modules/ is generated, so it should never be committed. Your .gitignore doesn't list it yet, which we should fix.
+- .env.local holds the secrets and is gitignored, so each machine needs its own copy from neon link.

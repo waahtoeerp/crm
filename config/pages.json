@@ -24,6 +24,11 @@
       "count": "projectCount"
     }
   },
+  "project": {
+    "path": "/project/:id",
+    "file": "project.html",
+    "nav": false
+  },
   "projects": {
     "path": "/projects",
     "file": "projects.html",
