@@ -462,7 +462,13 @@ async function renderForecast() {
       return;
     }
     const data = await response.json();
-    result.append(resultLine(text("insights.form.totalArea"), `${data.totalAreaM2} m²`));
+    const euro = (value) => (value == null ? text("insights.form.noPrice") : `${value.toFixed(2)} €`);
+    result.append(
+      resultLine(text("insights.form.totalArea"), `${data.totalAreaM2} m²`),
+      resultLine(text("insights.form.materialCost"), euro(data.materialCost)),
+      resultLine(text("insights.form.methodCost"), euro(data.methodCost)),
+      resultLine(text("insights.form.total"), euro(data.total)),
+    );
     if (data.runs === 0) {
       result.append(element("p", "empty", text("insights.form.noRuns")));
       return;

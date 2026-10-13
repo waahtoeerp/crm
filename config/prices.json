@@ -1,0 +1,16 @@
+{
+  "currency": "EUR",
+  "note": "Mock prices per m², excl. VAT. Materials are keyed by their name in the materials table.",
+  "methods": {
+    "uvPrint": 12.0,
+    "cut": 2.5,
+    "route": 6.0
+  },
+  "materials": {
+    "Alumiinikomposiittilevy 3 mm": 22.0,
+    "Vaahtomuovilevy PVC 5 mm": 12.0,
+    "Akryylilevy 3 mm": 28.0,
+    "Polykarbonaattilevy 2 mm": 18.0,
+    "Kiiltävä vinyylitarra": 6.5
+  }
+}

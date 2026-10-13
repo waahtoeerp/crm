@@ -9,6 +9,10 @@ Testing PostgreSQL with Neon and testing new workflow with MCP.
 how similar MCP is deployed to another project
 3. A project can have many design files, so many materials. Not urgent: check the project page and the selection model when this comes up.
 4. Show how the cost model improves over time: estimate versus actual per week or month, so we can see whether the model is getting better.
+5. Decide how the Python model connects to the web server. Options:
+   - Keep the current bridge (a Python process per request). Least work.
+   - Run the Python model as a small web service (FastAPI or Flask) next to the server. No start-up delay, one more process.
+   - Move the whole server to Python and serve the same pages from it. One language; largest change.
 
 
 

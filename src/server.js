@@ -174,28 +174,11 @@ app.post("/api/materials", async (req, res) => {
   res.status(201).json(await materials.createMaterial(pool, input));
 });
 
+const { runAnalysis } = require("./analysis");
+
 app.get("/api/insights", async (req, res) => {
-  const { rows } = await pool.query(`
-    SELECT m.name AS material, o.method,
-           COUNT(*)::int AS runs,
-           ROUND(AVG(EXTRACT(EPOCH FROM (o.ended_at - o.started_at)) / 60)::numeric, 1) AS "avgMinutes",
-           MAX(o.started_at)::date AS "lastRun"
-    FROM operations o
-    JOIN materials m ON m.material_id = o.material_id
-    WHERE o.ended_at IS NOT NULL
-    GROUP BY m.name, o.method
-    ORDER BY m.name, o.method
-  `);
-  res.json(rows);
+  res.json(await runAnalysis("insights"));
 });
-
-const FORECAST_DRIVER = {
-  uvPrint: (w, h) => (w * h) / 1_000_000,
-  cut: (w, h) => (2 * (w + h)) / 1000,
-  route: (w, h) => (2 * (w + h)) / 1000,
-};
-
-const round1 = (value) => Math.round(value * 10) / 10;
 
 app.post("/api/forecast", async (req, res) => {
   const { method, materialId, pieces } = req.body ?? {};
@@ -208,42 +191,13 @@ app.post("/api/forecast", async (req, res) => {
         Number.isFinite(p?.width) && Number.isFinite(p?.height) &&
         p.width > 0 && p.height > 0 && p.width <= 5000 && p.height <= 5000,
     );
-  if (!Object.hasOwn(FORECAST_DRIVER, method) || !Number.isInteger(materialId) || !validPieces) {
+  const validMethod = typeof method === "string" && Object.hasOwn(readConfig("methods"), method);
+  if (!validMethod || !Number.isInteger(materialId) || !validPieces) {
     return res.status(400).json({ error: "invalid forecast input" });
   }
-
-  const driver = FORECAST_DRIVER[method];
-  const totalDriver = pieces.reduce((sum, p) => sum + driver(p.width, p.height), 0);
-  const totalAreaM2 = Math.round(pieces.reduce((sum, p) => sum + (p.width * p.height) / 1_000_000, 0) * 100) / 100;
-
-  const { rows } = await pool.query(
-    `SELECT o.started_at, o.ended_at, f.width_mm, f.height_mm
-     FROM operations o
-     JOIN files f ON f.file_id = o.file_id
-     WHERE o.method = $1 AND o.material_id = $2
-       AND o.ended_at IS NOT NULL AND f.width_mm IS NOT NULL AND f.height_mm IS NOT NULL`,
-    [method, materialId],
-  );
-
-  const estimates = rows
-    .map((row) => {
-      const minutes = (new Date(row.ended_at) - new Date(row.started_at)) / 60000;
-      const runDriver = driver(Number(row.width_mm), Number(row.height_mm));
-      return (minutes / runDriver) * totalDriver;
-    })
-    .filter(Number.isFinite);
-
-  if (estimates.length === 0) {
-    return res.json({ runs: 0, totalAreaM2, estimateMinutes: null, lowMinutes: null, highMinutes: null });
-  }
-  const mean = estimates.reduce((sum, value) => sum + value, 0) / estimates.length;
-  res.json({
-    runs: estimates.length,
-    totalAreaM2,
-    estimateMinutes: round1(mean),
-    lowMinutes: round1(Math.min(...estimates)),
-    highMinutes: round1(Math.max(...estimates)),
-  });
+  const result = await runAnalysis("forecast", { method, materialId, pieces });
+  if (result.error) return res.status(400).json(result);
+  res.json(result);
 });
 
 app.get("/qr/:kind/:id", async (req, res) => {

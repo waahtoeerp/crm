@@ -1,5 +1,11 @@
 # Model: simulation and calculations
 
+Where the code is:
+- `analysis/model.py`: all calculations (run times, insights, forecast, prices).
+- `analysis/cli.py`: the bridge the web server calls. Node passes it a request as JSON and reads the answer back.
+- `analysis/explore.py`: notebook-style cells (`# %%`) for exploring the data in VS Code or Jupyter.
+- `tools/simulate.py`: creates and removes the simulated runs.
+
 ## 1. What is simulated
 
 `tools/simulate.py` adds fake production runs to the database so we can test the model before real data exists.
@@ -62,6 +68,8 @@ The "Hinta-arvio" form takes a method, a material, and a list of pieces with wid
 2. For each recorded run of the same method and material that has file sizes, compute its minutes per unit of size: `run minutes ÷ run size driver`.
 3. Scale each rate to the total size: `rate × total size driver`.
 4. Report the mean as the estimate, and the lowest and highest values as the range.
+
+Prices (from `config/prices.json`, excl. VAT, currently mock values): the total area is multiplied by the material's price per m² and by the method's price per m². The two add up to the total price. A material without a price shows "hinta puuttuu" instead of a total.
 
 Known limit: the setup time is not separated out. Each run's rate includes its setup, so a small-run rate stretched to a large job overstates the large job's time. The first refinement should separate setup from the per-unit rate.
 
