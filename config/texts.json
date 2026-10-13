@@ -24,8 +24,8 @@
     }
   },
   "insights": {
-    "title": "Ennusteet",
-    "note": "Ennusteet tulevat, kun kustannusmalli on valmis. Tässä näkyvät toteutuneet ajat.",
+    "title": "Laskuri, Hinta-arvio",
+    "note": "Laskuri tarkentuu taustalla olevan tilastomallin päivittyessä, kun dataa kertyy tuotannosta.",
     "empty": "Ei valmiita ajoja.",
     "form": {
       "title": "Hinta-arvio",
